@@ -1,0 +1,10 @@
+.DS_Store
+**/xcuserdata/
+*.xcuserstate
+build/
+.vscode/
+buildServer.json
+*.code-workspace
+.compile
+**/__pycache__/
+*.pyc
