@@ -116,4 +116,4 @@ An Apple Developer team and the appropriate signing certificates must be configu
 
 PaneDrop does not include analytics, telemetry, advertising, or network requests. Window information, templates, and preferences stay on the Mac.
 
-The current version and build number are shown in the bottom-left corner of the menu bar settings. `BuildSupport/BuildNumber.txt` is the single source for build numbers: every Debug and Release build atomically increments it and writes the new value into the built app. `CURRENT_PROJECT_VERSION` records the synchronized baseline in Xcode but does not participate in incrementing the counter.
+The current version and build number are shown in the bottom-left corner of the menu bar settings. Debug builds reuse the latest local build number without changing the repository. A Release archive atomically increments the counter stored under `~/Library/Application Support/DavidLabWorks/PaneDropBuild/BuildNumber.txt` and writes it into the archived app. `CURRENT_PROJECT_VERSION` is the tracked initialization baseline for a new development Mac.
