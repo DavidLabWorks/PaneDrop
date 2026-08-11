@@ -125,8 +125,7 @@ struct SetupAssistantView: View {
     private var completedRequirementCount: Int {
         [
             automation.setupStatus.accessibilityGranted,
-            automation.setupStatus.scriptInstalled,
-            automation.setupStatus.automationGranted
+            automation.setupStatus.scriptInstalled
         ].filter { $0 }.count
     }
 
@@ -160,7 +159,7 @@ struct SetupAssistantView: View {
 
                     ProgressView(
                         value: Double(completedRequirementCount),
-                        total: 3
+                        total: 2
                     )
                     .controlSize(.small)
                     .frame(width: 112)
@@ -192,33 +191,16 @@ struct SetupAssistantView: View {
                 }
 
                 GroupBox {
-                    VStack(spacing: 0) {
-                        SetupRequirementRow(
-                            step: 2,
-                            title: L10n.string("setup.accessibility"),
-                            detail: L10n.string("setup.accessibility_detail"),
-                            isComplete: automation.setupStatus.accessibilityGranted,
-                            actionTitle: L10n.string("setup.open_accessibility"),
-                            isActionDisabled: false,
-                            showsAppDragSource: true,
-                            action: automation.openAccessibilitySettings
-                        )
-
-                        Divider()
-                            .padding(.leading, 54)
-
-                        SetupRequirementRow(
-                            step: 3,
-                            title: L10n.string("setup.automation"),
-                            detail: L10n.string("setup.automation_detail"),
-                            isComplete: automation.setupStatus.automationGranted,
-                            actionTitle: automation.automationRequestInProgress
-                                ? L10n.string("common.waiting")
-                                : L10n.string("setup.allow_automation"),
-                            isActionDisabled: automation.automationRequestInProgress,
-                            action: automation.requestAutomationPermission
-                        )
-                    }
+                    SetupRequirementRow(
+                        step: 2,
+                        title: L10n.string("setup.accessibility"),
+                        detail: L10n.string("setup.accessibility_detail"),
+                        isComplete: automation.setupStatus.accessibilityGranted,
+                        actionTitle: L10n.string("setup.open_accessibility"),
+                        isActionDisabled: false,
+                        showsAppDragSource: true,
+                        action: automation.openAccessibilitySettings
+                    )
                 } label: {
                     Label(
                         L10n.string("setup.permissions_section"),

@@ -34,7 +34,7 @@ PaneDrop is a lightweight macOS menu bar app for visual window placement. While 
 
 ## How to use PaneDrop
 
-1. Finish the three setup requirements shown on first launch.
+1. Finish the two setup requirements shown on first launch.
 2. Drag an app window by its title bar.
 3. Move the pointer over a zone in the template panel.
 4. Release the pointer to move and resize the window.
@@ -62,28 +62,26 @@ The exported JSON archive has an explicit format version and stable identifiers 
 
 ## Setup and permissions
 
-PaneDrop checks its setup status every time it launches. If any requirement is incomplete, the Setup window opens. Clicking the menu bar icon returns to Setup until all three items are ready.
+PaneDrop checks its setup status every time it launches. If any requirement is incomplete, the Setup window opens. Clicking the menu bar icon returns to Setup until both items are ready.
 
 | Requirement | Why it is needed |
 | --- | --- |
-| Accessibility | Detects the window being dragged and its current geometry |
 | Window control script | Moves and resizes the selected window through System Events |
-| Automation | Allows PaneDrop to run the installed script with System Events |
+| Accessibility | Lets that script move and resize other apps' windows |
 
-When all three items become ready, Setup closes automatically and the menu bar settings open.
+When both items become ready, Setup closes automatically and the menu bar settings open.
 
 ### Window control script installation
 
 PaneDrop runs in the App Sandbox. To install the bundled window control script, it asks the user to select PaneDrop's folder inside `~/Library/Application Scripts`, then copies the script with explicit user permission. The installed script runs with `NSUserAppleScriptTask`.
 
-If macOS asks for permission again after installing a newly signed build, open **System Settings → Privacy & Security** and verify Accessibility and Automation access.
+If macOS asks for permission again after installing a newly signed build, open **System Settings → Privacy & Security** and verify Accessibility access.
 
 ## Requirements
 
 - macOS 12.0 or later
 - Accessibility access
 - The bundled window control script installed
-- Automation access for System Events
 
 ## Development
 

@@ -6,10 +6,9 @@ import Combine
 struct SetupStatus: Equatable, Sendable {
     var accessibilityGranted = false
     var scriptInstalled = false
-    var automationGranted = false
 
     var isComplete: Bool {
-        accessibilityGranted && scriptInstalled && automationGranted
+        accessibilityGranted && scriptInstalled
     }
 }
 
@@ -19,7 +18,6 @@ final class WindowAutomation: ObservableObject {
 
     @Published private(set) var setupStatus = SetupStatus()
     @Published private(set) var installationInProgress = false
-    @Published private(set) var automationRequestInProgress = false
 
     private let scriptName = "PaneDropWindowControl"
     private let systemEventsBundleIdentifier = "com.apple.systemevents"
@@ -75,20 +73,6 @@ final class WindowAutomation: ObservableObject {
         return installedData == bundledData
     }
 
-    private nonisolated static func determineAutomationPermission(
-        askUserIfNeeded: Bool
-    ) -> OSStatus {
-        let descriptor = NSAppleEventDescriptor(
-            bundleIdentifier: "com.apple.systemevents"
-        )
-        return AEDeterminePermissionToAutomateTarget(
-            descriptor.aeDesc,
-            typeWildCard,
-            typeWildCard,
-            askUserIfNeeded
-        )
-    }
-
     func configureReadinessHandler(_ handler: @escaping (Bool) -> Void) {
         readinessHandler = handler
     }
@@ -117,10 +101,7 @@ final class WindowAutomation: ObservableObject {
                     scriptInstalled: Self.isScriptInstalled(
                         installedScriptURL: installedScriptURL,
                         bundledScriptURL: bundledScriptURL
-                    ),
-                    automationGranted: Self.determineAutomationPermission(
-                        askUserIfNeeded: false
-                    ) == noErr
+                    )
                 )
             }
             statusRefreshTask = task
@@ -162,32 +143,6 @@ final class WindowAutomation: ObservableObject {
         refreshAfterSystemPrompt()
     }
 
-    func requestAutomationPermission() {
-        guard !automationRequestInProgress else { return }
-
-        automationRequestInProgress = true
-        NSApp.activate(ignoringOtherApps: true)
-
-        Task { [weak self] in
-            guard let self else { return }
-            await self.ensureSystemEventsIsRunning()
-
-            var result = await Task.detached(priority: .userInitiated) {
-                Self.determineAutomationPermission(askUserIfNeeded: true)
-            }.value
-
-            if result == procNotFound {
-                try? await Task.sleep(nanoseconds: 300_000_000)
-                result = await Task.detached(priority: .userInitiated) {
-                    Self.determineAutomationPermission(askUserIfNeeded: true)
-                }.value
-            }
-
-            await self.handleAutomationPermissionResult(result)
-            self.automationRequestInProgress = false
-        }
-    }
-
     private func ensureSystemEventsIsRunning() async {
         guard NSRunningApplication.runningApplications(
             withBundleIdentifier: systemEventsBundleIdentifier
@@ -209,26 +164,6 @@ final class WindowAutomation: ObservableObject {
                 continuation.resume()
             }
         }
-    }
-
-    private func handleAutomationPermissionResult(_ result: OSStatus) async {
-        await updateSetupStatus()
-
-        guard result != noErr else { return }
-
-        if result == errAEEventNotPermitted {
-            if let settingsURL = URL(
-                string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Automation"
-            ) {
-                NSWorkspace.shared.open(settingsURL)
-            }
-            return
-        }
-
-        showError(
-            title: L10n.string("error.automation_request_title"),
-            message: L10n.string("error.automation_request_detail", result)
-        )
     }
 
     func installScript() {

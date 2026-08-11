@@ -6,7 +6,7 @@ enum AppLinks {
         string: "https://davidlabworks.github.io/panedrop-privacy/"
     )!
     static let support = URL(
-        string: "https://github.com/DavidLabWorks/panedrop-privacy/issues"
+        string: "https://davidlabworks.github.io/panedrop-privacy/support/"
     )!
 }
 

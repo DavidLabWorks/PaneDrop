@@ -20,9 +20,11 @@ Keep the following boundary:
 - Swift does **not** directly write another application's `AXPosition` or `AXSize`.
 - A compiled AppleScript installed in the app-specific Application Scripts
   directory performs the final move and resize through System Events.
-- PaneDrop remains sandboxed and requires all three setup conditions:
-  Accessibility access, an up-to-date installed script, and Automation access to
-  System Events.
+- PaneDrop remains sandboxed and requires two setup conditions: Accessibility
+  access and an up-to-date installed script. The installed script reaches System
+  Events through `NSUserAppleScriptTask` without
+  `com.apple.security.automation.apple-events` or
+  `com.apple.security.temporary-exception.apple-events`.
 
 Do not replace this design with direct Accessibility API writes unless a future,
 signed, sandboxed reproduction proves that Apple has made that path reliable and
@@ -93,11 +95,14 @@ used only for the final external-window mutation.
 
 - `AXIsProcessTrusted()` confirms Accessibility access.
 - The installed `.scpt` data exactly matches the bundled script data.
-- `AEDeterminePermissionToAutomateTarget` confirms permission to automate
-  `com.apple.systemevents`.
 
-If any item is missing, PaneDrop presents the Setup Assistant instead of trying a
-partial or hidden fallback. Keep these as three separate checks because they fail
+Setup presents these as two user-facing steps. System Events is reached by the
+installed script itself; PaneDrop does not ask for a separate Automation Setup
+step because signed builds without `com.apple.security.automation.apple-events`
+do not get a useful `AEDeterminePermissionToAutomateTarget` signal.
+
+If either item is missing, PaneDrop presents the Setup Assistant instead of trying a
+partial or hidden fallback. Keep these as two separate checks because they fail
 and recover independently.
 
 ### 4. Install the script with explicit user consent
@@ -167,9 +172,11 @@ finds the closest window at the destination before retrying.
 Keep these entries aligned with the implementation:
 
 - App Sandbox remains enabled in the target build settings.
-- `com.apple.security.automation.apple-events` permits Apple Event automation.
-- The Apple Events exception remains limited to `com.apple.systemevents` for the
-  current deployment target and distribution path.
+- `com.apple.security.automation.apple-events` is not present. A signed,
+  sandboxed Release experiment confirmed that `NSUserAppleScriptTask` reaches
+  System Events without it; `AEDeterminePermissionToAutomateTarget` alone is not
+  a reliable readiness signal in that configuration.
+- `com.apple.security.temporary-exception.apple-events` is not present.
 - `com.apple.security.files.user-selected.read-write` supports the explicit
   `NSOpenPanel` installation flow.
 - `NSAppleEventsUsageDescription` accurately explains that PaneDrop uses the
@@ -177,10 +184,33 @@ Keep these entries aligned with the implementation:
 - The script remains a bundled resource and the installed copy remains under the
   app-specific Application Scripts directory.
 
-Do not remove an entitlement merely because its name contains “temporary”. First
-prove that the signed, sandboxed release still installs and runs the task on every
-supported macOS version, and confirm that the replacement distribution path is
-acceptable for App Store review.
+### Apple Events entitlement experiments
+
+On August 4, 2026, PaneDrop was built and signed with App Sandbox enabled and
+`com.apple.security.temporary-exception.apple-events` removed while keeping
+`com.apple.security.automation.apple-events`. On a clean TCC path, the first
+window operation displayed the standard Automation consent prompt. After
+approval, the script proceeded to System Events UI scripting and failed only
+because Accessibility had not been granted (`-25211`,
+`osascript is not allowed assistive access`). See
+`docs/experiments/without-accessibility-and-apple-event-exception.md`.
+
+The same day, a follow-up signed Release build also removed
+`com.apple.security.automation.apple-events`. Results:
+
+- The entitlement was absent from the signed app.
+- `AEDeterminePermissionToAutomateTarget` returned `-600` for both silent and
+  prompting calls.
+- With the script installed and Accessibility denied, `NSUserAppleScriptTask`
+  still reached System Events and failed only with `-25211`.
+- With Accessibility granted, the same script probe succeeded and moved a
+  Finder window frame.
+
+This shows the temporary exception and the standard automation entitlement are
+both unnecessary for the `NSUserAppleScriptTask` control path. Accessibility
+remains required for window mutation. Setup therefore asks only for script
+installation and Accessibility access. See
+`docs/experiments/without-automation-apple-events-entitlement.md`.
 
 ## Review guardrails
 
@@ -189,8 +219,14 @@ following proposals as architectural regressions:
 
 - Replace `NSUserAppleScriptTask` with direct `AXUIElementSetAttributeValue`.
 - Disable App Sandbox to make direct AX writes work.
-- Remove Automation permission, Accessibility permission, or script installation.
-- Collapse the three readiness checks into one optimistic check.
+- Reintroduce `com.apple.security.temporary-exception.apple-events` or
+  `com.apple.security.automation.apple-events` without new signed-build evidence
+  that the current script path is insufficient.
+- Remove Accessibility permission or script installation.
+- Collapse the two readiness checks into one optimistic check.
+- Add a user-facing Automation Setup step that depends on
+  `AEDeterminePermissionToAutomateTarget` without signed evidence that the
+  current script path needs it.
 - Execute the bundled script directly without installing the user script.
 - Use `NSAppleScript`, `osascript`, shell execution, private APIs, or injected code
   as an alternative control path.
@@ -214,7 +250,7 @@ enabled, not only in an unsandboxed debug helper. At minimum verify:
 - A clean macOS account with no existing TCC grants or installed script.
 - Script installation by selecting both the Application Scripts parent and the
   app-specific child directory.
-- Accessibility denial, Automation denial, later approval, and app relaunch.
+- Accessibility denial, later approval, and app relaunch.
 - Detection, hover selection, drop, move, and resize in several third-party apps.
 - Empty titles, duplicate window titles, and multiple windows from one process.
 - Multiple displays with different resolutions, scale factors, and menu-bar/Dock

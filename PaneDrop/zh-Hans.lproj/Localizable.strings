@@ -14,7 +14,6 @@
 "common.rename" = "重命名";
 "common.restart" = "重新启动";
 "common.save" = "保存";
-"common.waiting" = "等待中…";
 
 "editor.add" = "添加";
 "editor.add_zone" = "添加区域";
@@ -38,8 +37,6 @@
 "editor.zone_number" = "区域 %d";
 "editor.zones" = "区域";
 
-"error.automation_request_detail" = "macOS 返回错误 %d。请重新启动 PaneDrop 后重试。";
-"error.automation_request_title" = "无法请求自动化权限";
 "error.install_script_title" = "无法安装窗口控制脚本";
 "error.move_window_title" = "无法移动窗口";
 "error.run_script_title" = "无法运行窗口控制脚本";
@@ -93,19 +90,16 @@
 
 "setup.accessibility" = "辅助功能";
 "setup.accessibility_detail" = "允许窗口控制脚本通过“系统事件”移动和调整其他应用的窗口。";
-"setup.allow_automation" = "允许“系统事件”";
-"setup.automation" = "自动化";
-"setup.automation_detail" = "允许 PaneDrop 仅向“系统事件”发送窗口控制命令。";
 "setup.component_section" = "本地组件";
 "setup.drag_accessibility" = "将 PaneDrop 拖入“辅助功能”";
 "setup.drag_accessibility_help" = "将 PaneDrop 拖到“系统设置”的“辅助功能”列表中";
 "setup.more_actions" = "更多设置操作";
 "setup.open_accessibility" = "打开“辅助功能”";
 "setup.permissions_section" = "隐私权限";
-"setup.progress" = "已完成 %d 项，共 3 项";
+"setup.progress" = "已完成 %d 项，共 2 项";
 "setup.script" = "安装窗口控制组件";
 "setup.script_detail" = "将本地 AppleScript 安装到你的 Application Scripts 文件夹；它只负责移动和调整窗口大小。";
-"setup.subtitle" = "PaneDrop 需要一个本地组件和两项 macOS 权限才能整理窗口。";
+"setup.subtitle" = "PaneDrop 需要一个本地组件和辅助功能权限才能整理窗口。";
 "setup.title" = "完成 PaneDrop 设置";
 "setup.window_title" = "PaneDrop 设置";
 
