@@ -160,7 +160,11 @@ to move the wrong window.
 
 The script moves the window before resizing it. This order is required because
 macOS may clamp the requested size to the source display's visible frame if resize
-happens before a cross-display move.
+happens before a cross-display move. The initial move itself can also be clamped
+while the window still has its original, larger size, so each adjustment pass
+resizes the window, reapplies the destination position, and resizes it once more.
+This lets full-height zones reach the destination display's top and side edges
+instead of preserving the clamp offset.
 
 After moving, the script waits briefly and retries resize up to three times. A
 cross-display move can switch Spaces or invalidate the original System Events
@@ -233,8 +237,8 @@ following proposals as architectural regressions:
 - Broaden Apple Event targets beyond System Events without a separately reviewed
   need.
 - Identify windows only by title, only by ordering, or only by current position.
-- Resize before moving, or remove the retry and re-identification logic without a
-  tested replacement.
+- Resize before the initial move, omit the post-resize position correction, or
+  remove the retry and re-identification logic without a tested replacement.
 - Treat the script as support for another application or a historical data format.
   It is PaneDrop's current window-control component.
 

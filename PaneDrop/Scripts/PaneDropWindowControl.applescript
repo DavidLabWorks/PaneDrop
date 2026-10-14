@@ -44,6 +44,13 @@ on setWindowFrame(bundleIdentifier, windowTitle, currentX, currentY, targetX, ta
 
 		repeat 3 times
 			try
+				-- The initial move can be clamped while the window still has its
+				-- original size. Resize it once, reapply the destination origin,
+				-- then resize again so full-height zones can reach every edge.
+				set size of targetWindow to {targetWidth, targetHeight}
+				delay 0.05
+				set position of targetWindow to {targetX, targetY}
+				delay 0.05
 				set size of targetWindow to {targetWidth, targetHeight}
 				set didResize to true
 				exit repeat
